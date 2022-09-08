@@ -49,6 +49,8 @@ const Keywords = {
     "refactor!": ReleaseType.Major,
     "refactors": ReleaseType.Minor,
     "refactors!": ReleaseType.Major,
+    "refactored": ReleaseType.Minor,
+    "refactored!": ReleaseType.Major,
     "refactoring": ReleaseType.Minor,
     "refactoring!": ReleaseType.Major,
 } as const;
