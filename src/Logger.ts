@@ -5,13 +5,15 @@ export class Logger {
         this.#isVerbose = isVerbose;
     }
 
-    info(message?: any, ...optionalParams: any[]) {
-        console.log(message, ...optionalParams);
+    info(message?: string, ...optionalParams: any[]) {
+        const prefix = "[INFO] - ";
+        console.log(`${prefix}${message}`, ...optionalParams);
     }
 
-    debug(message?: any, ...optionalParams: any[]) {
+    debug(message?: string, ...optionalParams: any[]) {
+        const prefix = "[DEBUG] - ";
         if (this.#isVerbose) {
-            console.debug(message, ...optionalParams);
+            console.debug(`${prefix}${message}`, ...optionalParams);
         }
     }
 }
