@@ -1,4 +1,5 @@
 import {assumeVersionPure} from "./gitBump";
+import {Logger} from "./Logger";
 import {SemanticVersion} from "./SemanticVersion";
 
 const keywords = {
@@ -17,6 +18,7 @@ const options = {
 };
 
 const dependencies = {
+    logger: new Logger(false),
     readExactVersion: () => null,
     readPreviousVersion: () => new SemanticVersion("1.0.0"),
     readGitLog: () => ["fix", "fix", "fix"],
