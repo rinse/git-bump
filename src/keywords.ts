@@ -51,13 +51,32 @@ export function getDefaultKeywordReleaseTypeMap(): KeywordReleaseTypeMap {
     return Keywords;
 }
 
-export function getKeywordRegex(keywordReleaseTypeMap: KeywordReleaseTypeMap): RegExp {
-    // The longest keyword comes to head.
-    const keywords = Object.keys(keywordReleaseTypeMap).sort((a, b) => b.length - a.length);
-    const regex = keywords.reduce((acc, a) => `${acc}|${a}`);
+/**
+ * Returns a regex that matches one of given keywords.
+ * It returns a regex that matches nothing when {@link keywords}.
+ * @param keywords
+ * @return a regex that matches one of given keywords.
+ */
+export function getKeywordRegex(keywords: string[]): RegExp {
+    if (keywords.length === 0) {
+        return new RegExp("$a^");   // Regular expression that matches nothing.
+    }
+    const regex = keywords
+        .sort((a, b) => b.length - a.length)    // The longest keyword appears first
+        .map(s => escapeRegExp(s))
+        .map(s => `^${s}`)
+        .reduce((acc, a) => `${acc}|${a}`);
     return new RegExp(regex);
 }
 
+function escapeRegExp(text: string) {
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+}
+
+/**
+ * Extract a keyword from a line using a given regex.
+ * Returns {@code null} when {@link keywordRegex} doesn't match to the line.
+ */
 export function extractKeyword(line: string, keywordRegex: RegExp): string | null {
     const result = line.match(keywordRegex);
     if (result === null || result.length === 0) {
@@ -66,6 +85,10 @@ export function extractKeyword(line: string, keywordRegex: RegExp): string | nul
     return result[0];
 }
 
+/**
+ * Get a {@link ReleaseType} of a keyword.
+ * If the keyword found in {@link keywords}, it throws {@link Error}.
+ */
 export function keywordToReleaseType(keyword: string, keywords: KeywordReleaseTypeMap): ReleaseType {
     const ret = keywords[keyword];
     if (ret === undefined) {

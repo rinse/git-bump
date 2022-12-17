@@ -164,7 +164,7 @@ export function assumeVersionPure(options: Options, dependencies: Dependencies):
 }
 
 function assumeReleaseType(keywords: KeywordReleaseTypeMap, linesOfGitLog: string[]): ReleaseType {
-    const keywordRegex = getKeywordRegex(keywords)
+    const keywordRegex = getKeywordRegex(Object.keys(keywords));
     return linesOfGitLog.map(line => extractKeyword(line, keywordRegex))
         .flatMap(liftToNonNullList)
         .map(keyword => keywordToReleaseType(keyword, keywords))
