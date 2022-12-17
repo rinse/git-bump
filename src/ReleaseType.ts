@@ -1,5 +1,7 @@
 export type ReleaseType = "patch" | "minor" | "major";
 
+export const RELEASE_TYPES = ["patch", "minor", "major"] as const;
+
 export function precedenceOfReleaseType(a: ReleaseType): number {
     switch (a) {
         case "patch": return 0;

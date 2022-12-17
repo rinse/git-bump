@@ -47,8 +47,7 @@ export type KeywordReleaseTypeMap = {
     [key: string]: ReleaseType
 }
 
-export function readKeywordReleaseTypeMap(): KeywordReleaseTypeMap {
-    // Keywords may also be loaded from an external file.
+export function getDefaultKeywordReleaseTypeMap(): KeywordReleaseTypeMap {
     return Keywords;
 }
 
