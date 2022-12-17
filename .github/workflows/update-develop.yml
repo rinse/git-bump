@@ -17,7 +17,7 @@ jobs:
         with:
           fetch-depth: 0  # Required to perform merging
       - name: Git switch to ${{ github.head_ref }}
-        run: git switch "$HEAD_REF"
+        run: git switch ${{ github.head_ref }}
       - name: Git first-forward merge ${{ github.base_ref }} to ${{ github.head_ref }}.
         run: git merge ${{ github.base_ref }} --ff-only
       - name: Git push ${{ github.head_ref }} to the repo.
