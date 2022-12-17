@@ -1,16 +1,30 @@
+import os from "os";
 import semver, {SemVer} from "semver";
-import {precedenceOfReleaseType, ReleaseType, toPrerelease} from "./ReleaseType";
+import {
+    GitBumpConfig,
+    ReleaseTypeKeywordMap,
+    mergeGitBumpConfigs,
+    readGitBumpConfigJson
+} from "./GitBumpConfig";
+import {Logger} from "./Logger";
+import {RELEASE_TYPES, precedenceOfReleaseType, ReleaseType, toPrerelease} from "./ReleaseType";
+import {SemanticVersion, setBuildMetadata} from "./SemanticVersion";
+import {bumpPrereleaseVersion, bumpVersion} from "./bump";
+import {
+    gitTopLevelPath,
+    readExactVersion,
+    readGitHash,
+    readGitLog,
+    readPreviousVersion
+} from "./gits";
 import {
     extractKeyword,
     getKeywordRegex,
     KeywordReleaseTypeMap,
     keywordToReleaseType,
-    readKeywordReleaseTypeMap
+    getDefaultKeywordReleaseTypeMap
 } from "./keywords";
-import {readExactVersion, readGitHash, readGitLog, readPreviousVersion} from "./gits";
 import {liftToNonNullList, maxOn, minOn, run} from "./utils";
-import {bumpPrereleaseVersion, bumpVersion} from "./bump";
-import {SemanticVersion, setBuildMetadata} from "./SemanticVersion";
 
 export type Options = {
     release: boolean,
@@ -22,16 +36,44 @@ export type Options = {
 };
 
 export function assumeVersion(options: Options): SemanticVersion {
+    const logger = new Logger(options.verbose);
     return assumeVersionPure(options, {
-        readExactVersion: () => readExactVersion(options.includeNonAnnotatedTags, options.verbose),
-        readPreviousVersion: () => readPreviousVersion(options.includeNonAnnotatedTags, options.verbose),
+        logger: logger,
+        readExactVersion: () => readExactVersion(options.includeNonAnnotatedTags),
+        readPreviousVersion: () => readPreviousVersion(options.includeNonAnnotatedTags),
         readGitLog: readGitLog,
         readKeywordReleaseTypeMap: readKeywordReleaseTypeMap,
         readBuildMetadata: readGitHash,
     });
 }
 
+function readKeywordReleaseTypeMap(): KeywordReleaseTypeMap {
+    const config = readGitBumpConfig();
+    const userDefined = transformMaps(config.keywords);
+    const buildIn = getDefaultKeywordReleaseTypeMap();
+    return {...buildIn, ...userDefined};
+}
+
+function readGitBumpConfig(): GitBumpConfig {
+    const homeDir = os.homedir();
+    const globalConfig = readGitBumpConfigJson(homeDir);
+    const topLevelPath = gitTopLevelPath();
+    const localConfig = readGitBumpConfigJson(topLevelPath);
+    return mergeGitBumpConfigs(globalConfig, localConfig);
+}
+
+function transformMaps(releaseTypeKeywordMap: ReleaseTypeKeywordMap): KeywordReleaseTypeMap {
+    const ret: KeywordReleaseTypeMap = {};
+    for (const releaseType of RELEASE_TYPES) {
+        for (const keyword of releaseTypeKeywordMap[releaseType]) {
+            ret[keyword] = releaseType;
+        }
+    }
+    return ret;
+}
+
 type Dependencies = {
+    logger: Logger,
     readExactVersion: () => SemanticVersion | null,
     readPreviousVersion: () => SemanticVersion | null,
     readGitLog: (previousVersion: SemanticVersion) => string[],
@@ -63,10 +105,12 @@ type Dependencies = {
  * @returns An assumed verified semantic version.
  */
 export function assumeVersionPure(options: Options, dependencies: Dependencies): SemanticVersion {
+    const logger = dependencies.logger;
     const buildMetadata = options.build ? dependencies.readBuildMetadata() : "";
     const exactVersion = dependencies.readExactVersion();
     if (exactVersion !== null) {
         // An exact version is available.
+        logger.debug(`The exact version found: ${exactVersion}.`);
         const svExactVersion = new SemVer(exactVersion.get());
         const prerelease = svExactVersion.prerelease;
         if (prerelease.length === 0 || !options.release) {
@@ -77,9 +121,11 @@ export function assumeVersionPure(options: Options, dependencies: Dependencies):
         const partialVersion = new SemanticVersion(svExactVersion.inc("patch").version);
         return options.build ? setBuildMetadata(partialVersion, buildMetadata) : partialVersion;
     }
+    logger.debug("The exact version not found.");
     const previousVersion = dependencies.readPreviousVersion();
     if (previousVersion === null) {
         // No versions are tagged ever.
+        logger.debug("The previous version not found. Fallbacking to the initial version.");
         const initialVersion = semver.valid(options.initialVersion);
         if (initialVersion === null) {
             throw new Error("The given initial version does not a valid semver.");
@@ -87,8 +133,10 @@ export function assumeVersionPure(options: Options, dependencies: Dependencies):
         const partialVersion = new SemanticVersion(initialVersion);
         return options.build ? setBuildMetadata(partialVersion, buildMetadata) : partialVersion;
     }
+    logger.debug(`The previous version: ${previousVersion}.`);
     // Assume a current version from the commits.
     const keywords = dependencies.readKeywordReleaseTypeMap();
+    logger.debug("Assuming a version. Keywords: ", keywords);
     const gitLog = dependencies.readGitLog(previousVersion);
     const svPreviousVersion = new SemVer(previousVersion.get());
     const releaseType = run(() => {
@@ -97,6 +145,7 @@ export function assumeVersionPure(options: Options, dependencies: Dependencies):
             ? releaseType
             : minOn(precedenceOfReleaseType)(releaseType, "minor");
     });
+    logger.debug("Assuming a version. Assumed release type: ", releaseType);
     const previousPrerelease = svPreviousVersion.prerelease;
     const prerelease = options?.prerelease;
     if (!options.release && prerelease !== undefined) {
@@ -115,7 +164,7 @@ export function assumeVersionPure(options: Options, dependencies: Dependencies):
 }
 
 function assumeReleaseType(keywords: KeywordReleaseTypeMap, linesOfGitLog: string[]): ReleaseType {
-    const keywordRegex = getKeywordRegex(keywords)
+    const keywordRegex = getKeywordRegex(Object.keys(keywords));
     return linesOfGitLog.map(line => extractKeyword(line, keywordRegex))
         .flatMap(liftToNonNullList)
         .map(keyword => keywordToReleaseType(keyword, keywords))

@@ -1,7 +1,6 @@
 import {spawnSync} from "child_process";
-import {SemanticVersion} from "./SemanticVersion";
 import semver from "semver";
-import {Logger} from "./Logger";
+import {SemanticVersion} from "./SemanticVersion";
 
 export function readGitLog(previousVersion: SemanticVersion): string[] {
     const {stdout, status} = spawnSync("git", ["log", `refs/tags/${previousVersion.get()}..HEAD`]);
@@ -20,13 +19,11 @@ export function readGitHash(): string {
     return stdout.toString("utf8").trim();
 }
 
-export function readExactVersion(includeNonAnnotatedTag: boolean, verbose: boolean): SemanticVersion | null {
-    const logger = new Logger(verbose);
+export function readExactVersion(includeNonAnnotatedTag: boolean): SemanticVersion | null {
     const {stdout, status} = spawnSync("git", [
         "describe", "--exact-match", "--match", "*.*.*",
     ].concat(includeNonAnnotatedTag ? ["--tags"] : []));
     if (status !== 0) {
-        logger.debug("The exact version not found.");
         return null;
     }
     const tag = stdout.toString("utf8").trim();
@@ -35,17 +32,14 @@ export function readExactVersion(includeNonAnnotatedTag: boolean, verbose: boole
             + "Consider putting a new tag which meets the Semantic Versioning requirements. See https://semver.org.";
         throw new Error(message);
     }
-    logger.debug(`The exact version found: ${tag}.`);
     return new SemanticVersion(tag);
 }
 
-export function readPreviousVersion(includeNonAnnotatedTag: boolean, verbose: boolean): SemanticVersion | null {
-    const logger = new Logger(verbose);
+export function readPreviousVersion(includeNonAnnotatedTag: boolean): SemanticVersion | null {
     const {stdout, status} = spawnSync("git", [
         "describe", "--match", "*.*.*", "--abbrev=0",
     ].concat(includeNonAnnotatedTag ? ["--tags"] : []));
     if (status !== 0) {
-        logger.debug("The previous version not found.");
         return null;
     }
     const tag = stdout.toString("utf8").trim();
@@ -54,6 +48,13 @@ export function readPreviousVersion(includeNonAnnotatedTag: boolean, verbose: bo
             + "Consider putting a new tag which meets the Semantic Versioning requirements. See https://semver.org.";
         throw new Error(message);
     }
-    logger.debug(`The previous version: ${tag}.`);
     return new SemanticVersion(tag);
+}
+
+export function gitTopLevelPath(): string {
+    const {stdout, status} = spawnSync("git", ["rev-parse", "--show-toplevel"]);
+    if (status !== 0) {
+        throw new Error("Failed to get the top-level directory of the working tree. Make sure Git is installed and you're in a project directory.");
+    }
+    return stdout.toString("utf8").trim();
 }
