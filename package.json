@@ -2,7 +2,7 @@
   "author": "rinse",
   "name": "@rinse/git-bump",
   "description": "Bump a version of the project.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "build/index.js",
   "types": "build/index.d.js",
   "bin": {
