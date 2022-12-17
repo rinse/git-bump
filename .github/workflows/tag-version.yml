@@ -2,7 +2,7 @@ name: Tag Version
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -26,8 +26,8 @@ jobs:
       run: echo "::set-output name=VERSION::$(git bump)"
     - name: Set Git user configs
       run: |
-        git config --local user.name "CI - Tag Version"
-        git config --local user.email "rinse@neko2.net"
+        git config --local user.name ${{ github.event.pusher.name }}
+        git config --local user.email ${{ github.event.pusher.email }}
     - name: Put a tag
       run: git tag -a ${{ steps.bump-semver.outputs.version }} -m "Release a version"
     - name: Push a Git tag
