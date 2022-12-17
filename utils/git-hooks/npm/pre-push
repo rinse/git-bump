@@ -1,0 +1,11 @@
+#!/bin/sh
+
+PACKAGE_VERSION=$(npm list | head -n 1 | cut -d ' ' -f 1 | sed 's;^@.*@;;')
+BUMPED_VERSION=$(git bump)
+
+if [ "$PACKAGE_VERSION" != "$BUMPED_VERSION" ]; then
+    echo "Version in package.json ($PACKAGE_VERSION) is outdated. Update it to $BUMPED_VERSION." >&2
+    exit 1
+fi
+
+exit 0
