@@ -33,13 +33,13 @@ const Keywords = {
     "feat!": "major",
     "feature": "minor",
     "feature!": "major",
-    "refactor": "minor",
+    "refactor": "patch",
     "refactor!": "major",
-    "refactors": "minor",
+    "refactors": "patch",
     "refactors!": "major",
-    "refactored": "minor",
+    "refactored": "patch",
     "refactored!": "major",
-    "refactoring": "minor",
+    "refactoring": "patch",
     "refactoring!": "major",
 } as const;
 
