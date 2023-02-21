@@ -1,8 +1,8 @@
 {
   "author": "rinse <rinse@neko2.net>",
-  "name": "@rinse/git-bump",
+  "name": "@rinse495/git-bump",
   "description": "Bump a version of the project.",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": false,
   "repository": {
     "type": "git",
@@ -10,8 +10,7 @@
   },
   "license": "MIT",
   "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/@rinse495"
+    "access": "public"
   },
   "main": "build/index.js",
   "types": "build/index.d.js",
