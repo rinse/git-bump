@@ -1,8 +1,17 @@
 {
-  "author": "rinse",
-  "name": "@rinse/git-bump",
+  "author": "rinse <rinse@neko2.net>",
+  "name": "@rinse495/git-bump",
   "description": "Bump a version of the project.",
-  "version": "0.3.0",
+  "version": "0.4.1",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rinse/git-bump"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "build/index.js",
   "types": "build/index.d.js",
   "bin": {
@@ -13,7 +22,6 @@
     "prepare": "npm run build",
     "test": "jest"
   },
-  "license": "MIT",
   "dependencies": {
     "semver": "^7.3.7",
     "yargs": "^17.5.1"
