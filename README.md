@@ -93,7 +93,7 @@ Giving a version to the `--initial-version` option, Git-bump prints the version 
 
 ```bash
 $ git tag
-$ git git-bump --initial-version 1.0.0
+$ git bump --initial-version 1.0.0
 1.0.0
 ```
 
@@ -101,7 +101,7 @@ The default value is `0.1.0`.
 
 ```bash
 $ git tag
-$ git git-bump
+$ git bump
 0.1.0
 ```
 
@@ -121,7 +121,7 @@ Git-bump bumps a new version and prints it as a current version when new commits
 
 A version being increased is determined by prefixes of commit messages.
 
-Each prefix is mapped to a scale of modification; principal prefixes are the following:
+Each prefix is mapped to a scale of modification. Principal prefixes are the following:
 
 | Scale | Keywords                      |
 |-------|-------------------------------|
@@ -188,7 +188,7 @@ If the biggest scale of modification found in the new commits is -
 Additionally, you can have preferred keywords on `$HOME/.git-bump.json`.
 You can also override a predefined keywords above.
 
-For instance, you want to use the 'bug' keyword for a patch modification, insteads of 'fix'.
+Here is a sample `.git-bump.json` for those want to use the 'bug' keyword for a patch modification insteads of 'fix':
 
 ```json
 {
